@@ -121,5 +121,6 @@ func (b *BitSet) WithSetBitsFrom(index uint, fn func(uint)) {
 				fn(b.unindex(chunk_index, pos))
 			}
 		}
+		pos = 0
 	}
 }

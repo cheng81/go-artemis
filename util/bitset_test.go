@@ -102,3 +102,26 @@ func TestBitSet_Intersect(t *testing.T) {
 	}
 
 }
+
+func TestBitSet_WithSetBit(t *testing.T) {
+	b := NewBitSet(128)
+	b.Set(20)
+	b.Set(100)
+	b.Set(120)
+	count := 0
+	expectBits := [3]uint{20, 100, 120}
+	bits := make([]uint, 0)
+	b.WithSetBitsFrom(0, func(idx uint) {
+		count++
+		bits = append(bits, idx)
+	})
+	if count != 3 {
+		t.Error("Count should be 3", count)
+	}
+	for i, pos := range expectBits {
+		if bits[i] != pos {
+			t.Error("Bit set", i, "should be", pos, ": ", bits[i])
+		}
+	}
+
+}
