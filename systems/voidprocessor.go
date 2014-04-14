@@ -1,7 +1,7 @@
 package systems
 
 import (
-	core "github.com/cheng81/go-artemis/core"
+	core "github.com/cheng81/go-artemis"
 	util "github.com/cheng81/go-artemis/util"
 )
 

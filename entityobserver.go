@@ -1,4 +1,4 @@
-package core
+package artemis
 
 func EmptyEntityObserver() EntityObserver {
 	return emptyObserver

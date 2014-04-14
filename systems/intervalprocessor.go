@@ -1,9 +1,5 @@
 package systems
 
-import (
-// core "github.com/cheng81/go-artemis/core"
-)
-
 func newIntervalProcessor(interval float64) *IntervalProcessor {
 	return &IntervalProcessor{NewBaseProcessor(), 0, interval}
 }

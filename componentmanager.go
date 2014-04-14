@@ -1,4 +1,4 @@
-package core
+package artemis
 
 import (
 	util "github.com/cheng81/go-artemis/util"
