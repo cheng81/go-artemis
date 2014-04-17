@@ -152,6 +152,10 @@ func (w *World) Process() {
 	w.check(w.enable, func(eo EntityObserver, e *Entity) { eo.Enabled(e) })
 	w.check(w.deleted, func(eo EntityObserver, e *Entity) { eo.Deleted(e) })
 
+	// we know no entity is re-added before being cleaned,
+	// becasue deleted is called just before componentManager.clean
+	// but otherwise, we may incur in the problem that we delete an entity,
+	// then re-add the entity, then cleared..
 	w.componentManager.clean()
 
 	w.systemsBag.ForEach(func(_ int, si interface{}) {
