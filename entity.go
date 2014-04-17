@@ -4,7 +4,7 @@ import (
 	util "github.com/cheng81/go-artemis/util"
 )
 
-func NewEntity(world *World, id uint) (out *Entity) {
+func newEntity(world *World, id uint) (out *Entity) {
 	out = &Entity{
 		id:            id,
 		componentBits: util.NewBitSet(64),

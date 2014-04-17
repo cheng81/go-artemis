@@ -13,7 +13,6 @@ func NewEntityManager() *EntityManager {
 		DefaultManager: NewDefaultManager(),
 		entities:       util.NewBag(64),
 		disabled:       util.NewBitSet(64),
-		idPool:         newIdentifierPool(),
 	}
 }
 
@@ -25,13 +24,18 @@ type EntityManager struct {
 	active                  uint
 	added, created, deleted uint64
 
-	idPool *identifierPool
+	entPool *entityPool
 }
 
 func (_ *EntityManager) TypeId() ManagerTypeId { return entityManagerTypeId }
 
+func (e *EntityManager) SetWorld(w *World) {
+	e.entPool = newEntityPool(w)
+	e.DefaultManager.SetWorld(w)
+}
+
 func (e *EntityManager) createEntityInstance() (out *Entity) {
-	out = NewEntity(e.world, e.idPool.checkOut())
+	out = e.entPool.checkOut()
 	e.created += 1
 	return
 }
@@ -50,7 +54,7 @@ func (em *EntityManager) Disabled(e *Entity) {
 func (em *EntityManager) Deleted(e *Entity) {
 	em.entities.SetAt(e.id, nil)
 	em.disabled.Unset(e.id)
-	em.idPool.checkIn(e.id)
+	em.entPool.checkIn(e)
 	em.active--
 	em.deleted++
 }
@@ -64,28 +68,30 @@ func (e *EntityManager) TotalCreated() uint64      { return e.created }
 func (e *EntityManager) TotalAdded() uint64        { return e.added }
 func (e *EntityManager) TotalDeleted() uint64      { return e.deleted }
 
-func newIdentifierPool() (out *identifierPool) {
-	out = &identifierPool{
-		ids:             util.NewBag(64),
-		nextAvailableId: 0,
+func newEntityPool(w *World) *entityPool {
+	return &entityPool{
+		world:       w,
+		ents:        util.NewBag(256),
+		nextAvailId: 0,
 	}
+}
+
+type entityPool struct {
+	world       *World
+	ents        *util.Bag
+	nextAvailId uint
+}
+
+func (e *entityPool) checkOut() (out *Entity) {
+	if e.ents.Size() > 0 {
+		out = e.ents.RemoveLast().(*Entity)
+		out.reset()
+		return
+	}
+	out = newEntity(e.world, e.nextAvailId)
+	e.nextAvailId += 1
 	return
 }
-
-type identifierPool struct {
-	ids             *util.Bag
-	nextAvailableId uint
-}
-
-func (p *identifierPool) checkOut() uint {
-	if p.ids.Size() > 0 {
-		return p.ids.RemoveLast().(uint)
-	}
-	out := p.nextAvailableId
-	p.nextAvailableId += 1
-	return out
-}
-
-func (p *identifierPool) checkIn(id uint) {
-	p.ids.Add(id)
+func (ep *entityPool) checkIn(e *Entity) {
+	ep.ents.Add(e)
 }
