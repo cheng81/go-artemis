@@ -45,7 +45,7 @@ func (b *Bag) RemoveAt(index uint) (out interface{}) {
 }
 
 func (b *Bag) RemoveLast() (out interface{}) {
-	if b.size >= 0 {
+	if b.size > 0 {
 		b.size -= 1
 		out = b.data[b.size]
 		b.data[b.size] = nil
