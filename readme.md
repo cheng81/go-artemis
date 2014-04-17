@@ -9,4 +9,4 @@ The goal was to learn how things worked in Artemis, and a bit of Go in the mean 
 Enough with the dreams, for now here it is, a mostly-untested, probably-memory-leaking, possibly uber-non-optimized, almost-undocumented Artemis port.
 
 Go-get it the usual way, if you want to play with it.
-Just be warned: I am not fluent in Go - and quite now to the entity system model.
+Just be warned: I am not fluent in Go, and I'm quite new to the entity system model.
