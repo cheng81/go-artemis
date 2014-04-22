@@ -64,7 +64,7 @@ func (e *Entity) Uuid() util.UUID { return e.uuid }
 func (e *Entity) World() *World   { return e.world }
 
 func (e *Entity) HasSystem(es *EntitySystem) bool {
-	return e.systemBits.Get(es.systemIndex)
+	return e.systemBits.Get(es.TypeId().Uint())
 }
 
 func (e *Entity) HasComponent(ct ComponentTypeId) bool {

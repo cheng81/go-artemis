@@ -6,6 +6,8 @@ import (
 
 type EntitySystemTypeId uint
 
+func (t EntitySystemTypeId) Uint() uint { return uint(t) }
+
 type EntitySystemProcessor interface {
 	CheckProcessing() bool
 	Begin() //Called before processing of entities
@@ -17,37 +19,31 @@ type EntitySystemProcessor interface {
 	SetEntitySystem(*EntitySystem)
 }
 
-// var sysIdx = uint(0)
-
 func NewEntitySystem(aspect *Aspect, typeId EntitySystemTypeId, processor EntitySystemProcessor) (out *EntitySystem) {
 	out = &EntitySystem{
-		// EntityObserver: EmptyEntityObserver(),
-		processor:   processor,
-		typeId:      typeId,
-		systemIndex: uint(typeId),
-		world:       nil,
-		actives:     util.NewBag(64),
-		aspect:      aspect,
-		allSet:      aspect.allSet,
-		exclSet:     aspect.exclSet,
-		oneSet:      aspect.oneSet,
-		passive:     false,
-		dummy:       aspect.allSet.Empty() && aspect.oneSet.Empty(),
+		processor: processor,
+		typeId:    typeId,
+		world:     nil,
+		actives:   util.NewBag(64),
+		aspect:    aspect,
+		allSet:    aspect.allSet,
+		exclSet:   aspect.exclSet,
+		oneSet:    aspect.oneSet,
+		passive:   false,
+		dummy:     aspect.allSet.Empty() && aspect.oneSet.Empty(),
 	}
 	processor.SetEntitySystem(out)
 	return
 }
 
 type EntitySystem struct {
-	// EntityObserver
-	systemIndex uint
-	typeId      EntitySystemTypeId
-	world       *World
-	actives     *util.Bag //*Entity
-	aspect      *Aspect
-	allSet      *util.BitSet
-	exclSet     *util.BitSet
-	oneSet      *util.BitSet
+	typeId  EntitySystemTypeId
+	world   *World
+	actives *util.Bag //*Entity
+	aspect  *Aspect
+	allSet  *util.BitSet
+	exclSet *util.BitSet
+	oneSet  *util.BitSet
 
 	passive, dummy bool
 	processor      EntitySystemProcessor
@@ -74,7 +70,7 @@ func (es *EntitySystem) Check(e *Entity) {
 		return
 	}
 
-	contains := e.systemBits.Get(es.systemIndex)
+	contains := e.systemBits.Get(es.typeId.Uint())
 	interested := true
 
 	cBits := e.componentBits
@@ -94,34 +90,21 @@ func (es *EntitySystem) Check(e *Entity) {
 		interested = es.oneSet.Intersects(cBits)
 	}
 
-	// if es.typeId == 18 {
-	// fmt.Println("EntitySystem.Check - ", es.typeId, e.Id(), interested, contains, es.actives.Size(), es.systemIndex, e.systemBits.ToStr())
-	// }
-
 	if interested && !contains {
-		// fmt.Println("EntitySystem.Check - insert", es.TypeId(), e.Id())
 		es.insert(e)
 	} else if !interested && contains {
-		// fmt.Println("EntitySystem.Check - remove", es.TypeId(), e.Id())
 		es.remove(e)
 	}
 }
 
 func (es *EntitySystem) insert(e *Entity) {
 	es.actives.Add(e)
-	e.systemBits.Set(es.systemIndex)
-	// if es.typeId == 18 {
-	// 	fmt.Println("EntitySystem.insert - inserted", es.typeId, e.Id(), es.actives.Size())
-	// }
+	e.systemBits.Set(es.typeId.Uint())
 	es.processor.Inserted(e)
 }
 func (es *EntitySystem) remove(e *Entity) {
 	es.actives.RemoveElem(e)
-	// fmt.Println("EntitySystem.remove", e.Id(), l, es.actives.Size())
-	// if es.typeId == 18 {
-	// 	fmt.Println("EntitySystem.remove - removed", es.typeId, e.Id(), es.actives.Size())
-	// }
-	e.systemBits.Unset(es.systemIndex)
+	e.systemBits.Unset(es.typeId.Uint())
 	es.processor.Removed(e)
 }
 
@@ -135,8 +118,7 @@ func (es *EntitySystem) Disabled(e *Entity) {
 	}
 }
 func (es *EntitySystem) Deleted(e *Entity) {
-	// fmt.Println("EntitySystem.Deleted - entity deleted")
-	if e.systemBits.Get(es.systemIndex) {
+	if e.systemBits.Get(es.typeId.Uint()) {
 		es.remove(e)
 	}
 }
@@ -145,24 +127,3 @@ func (es *EntitySystem) SetWorld(w *World) {
 	es.world = w
 }
 func (es *EntitySystem) World() *World { return es.world }
-
-// type SystemIndexManager struct {
-// 	index   uint
-// 	indices map[reflect.Type]uint
-// }
-
-// func (i *SystemIndexManager) getIndexFor(gType reflect.Type) uint {
-// 	index, ok := i.indices[gType]
-// 	if !ok {
-// 		index = i.index
-// 		i.indices[gType] = index
-// 		i.index++
-// 	}
-// 	return index
-// }
-
-// var systemIndices = &SystemIndexManager{uint(0), make(map[reflect.Type]uint)}
-
-// func GetIndexFor(gType reflect.Type) uint {
-// 	return systemIndices.getIndexFor(gType)
-// }
